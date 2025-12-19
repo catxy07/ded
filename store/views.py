@@ -4,7 +4,10 @@ from .models import Product, ProductGallery, ReviewRating
 from category.models import Category
 from carts.views import _cart_id
 from django.db.models import Q
+from django.conf import settings
+
 from carts.models import CartItem
+from django.contrib.auth.decorators import login_required
 from django.core.paginator import EmptyPage,PageNotAnInteger,Paginator
 from django.contrib import messages
 from .forms import ReviewForm
@@ -105,5 +108,45 @@ def submit_review(request,product_id):
                 messages.success(request,'Thank You! Your Review has been Submitted.')
                 return redirect(url)
 
+@login_required
+def place_order(request):
+
+    cart_items = CartItem.objects.filter(user=request.user, is_active=True)
+
+    if not cart_items.exists():
+        return redirect('store')
+
+    total = 0
+    quantity = 0
+
+    for item in cart_items:
+        total += item.product.price * item.quantity
+        quantity += item.quantity
+
+    tax = (2 * total) / 100
+    grand_total = total + tax
+
+    # 🔥 CREATE ORDER HERE (THIS WAS MISSING)
+    order = Order.objects.create(
+        user=request.user,
+        total=grand_total,
+        tax=tax,
+        is_ordered=False
+    )
+
+    # generate order number
+    order.order_number = str(order.id)
+    order.save()
+
+    context = {
+        "order": order,
+        "cart_items": cart_items,
+        "total": total,
+        "tax": tax,
+        "grand_total": grand_total,
+        "razorpay_key": settings.RZ_KEY_ID,
+    }
+
+    return render(request, "orders/payments.html", context)
 
 
