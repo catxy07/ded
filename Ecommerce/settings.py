@@ -14,26 +14,22 @@ from pathlib import Path
 from decouple import config
 import os
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+# --------------------------------------------------
+# BASE DIRECTORY
+# --------------------------------------------------
 BASE_DIR = Path(__file__).resolve().parent.parent
 RZ_KEY_ID = config("RZ")
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
-
-
-# SECURITY WARNING: keep the secret key used in production secret!
+# --------------------------------------------------
+# SECURITY
+# --------------------------------------------------
 SECRET_KEY = config('SECRET_KEY')
+DEBUG = config('DEBUG', default=True, cast=bool)
+ALLOWED_HOSTS = ['ded-w8zg.onrender.com', '127.0.0.1', 'localhost']
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG',default=True, cast=bool)
-
-ALLOWED_HOSTS = []
-
-
-# Application definition
-
+# --------------------------------------------------
+# APPLICATION DEFINITION
+# --------------------------------------------------
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -45,7 +41,7 @@ INSTALLED_APPS = [
     'accounts',
     'store',
     'carts',
-    'orders'
+    'orders',
 ]
 
 MIDDLEWARE = [
@@ -63,7 +59,7 @@ ROOT_URLCONF = 'Ecommerce.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': ['templates'],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -80,10 +76,9 @@ TEMPLATES = [
 WSGI_APPLICATION = 'Ecommerce.wsgi.application'
 AUTH_USER_MODEL = 'accounts.Account'
 
-
-# Database
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
+# --------------------------------------------------
+# DATABASE
+# --------------------------------------------------
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -91,66 +86,78 @@ DATABASES = {
     }
 }
 
-
-# Password validation
-# https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
-
+# --------------------------------------------------
+# PASSWORD VALIDATION
+# --------------------------------------------------
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-
-# Internationalization
-# https://docs.djangoproject.com/en/5.2/topics/i18n/
-
+# --------------------------------------------------
+# INTERNATIONALIZATION
+# --------------------------------------------------
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True
 
+# --------------------------------------------------
+# STATIC FILES
+# --------------------------------------------------
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'static'
+STATICFILES_DIRS = [BASE_DIR / 'Ecommerce' / 'static']
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.2/howto/static-files/
+# --------------------------------------------------
+# MEDIA FILES
+# --------------------------------------------------
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
-STATIC_URL = 'static/'
-STATIC_ROOT =BASE_DIR /'static'
-STATICFILES_DIRS= [
-    'Ecommerce/static',
-]
-
-# Media files configuration
-MEDIA_URL ='/media/'
-MEDIA_ROOT = BASE_DIR /'media'
-
+# --------------------------------------------------
+# MESSAGES
+# --------------------------------------------------
 from django.contrib.messages import constants as messages
-MESSAGE_TAGS = {
-    messages.ERROR: 'danger',
-}
+MESSAGE_TAGS = {messages.ERROR: 'danger'}
 
-
-# SMTP Configuration
+# --------------------------------------------------
+# SMTP EMAIL CONFIG
+# --------------------------------------------------
 EMAIL_HOST = config('EMAIL_HOST')
-EMAIL_PORT = config('EMAIL_PORT', cast=int)    
-EMAIL_HOST_USER =config('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD =config('EMAIL_HOST_PASSWORD')
+EMAIL_PORT = config('EMAIL_PORT', cast=int)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool)
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
+# --------------------------------------------------
+# PAYMENT
+# --------------------------------------------------
+RZ_KEY_ID = config("RZ")
 
+# --------------------------------------------------
+# DEFAULT PK FIELD
+# --------------------------------------------------
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+
+# --------------------------------------------------
+# AUTO CREATE SUPERUSER ON RENDER (FREE PLAN)
+# --------------------------------------------------
+# This will create a superuser automatically if it doesn't exist
+# Only runs when the environment variable 'RENDER' is set
+if os.environ.get('RENDER'):
+    import django
+    django.setup()
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+    if not User.objects.filter(is_superuser=True).exists():
+        print("Creating default superuser...")
+        User.objects.create_superuser(
+            email="admin@admin.com",
+            username="admin",
+            password="admin123"
+        )
+        print("Superuser created: admin@admin.com / admin123")
