@@ -7,17 +7,19 @@ class AccountsConfig(AppConfig):
     name = 'accounts'
 
     def ready(self):
-        if os.environ.get('RENDER'):  # Only on Render
+        if os.environ.get('RENDER'):  # Only run on Render
             from django.contrib.auth import get_user_model
 
             def create_superuser(sender, **kwargs):
                 User = get_user_model()
-                # Use your actual superuser field
+                # Check using your custom superuser field
                 if not User.objects.filter(is_superadmin=True).exists():
                     User.objects.create_superuser(
                         email="admin@admin.com",
                         username="admin",
-                        password="admin123"
+                        password="admin123",
+                        first_name="Admin",
+                        last_name="User"
                     )
                     print("Superuser created: admin@admin.com / admin123")
 
