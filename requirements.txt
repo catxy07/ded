@@ -1,0 +1,11 @@
+Django>=5.2
+Pillow
+python-decouple
+django-admin-thumbnails
+razorpay
+requests
+django-cloudinary-storage
+cloudinary
+whitenoise
+gunicorn
+
